@@ -18,9 +18,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 DEALINGS IN THE SOFTWARE.
 =end
 
-require_relative './RGSS'
-require_relative './psych_mods'
-
+require 'RGSS/psych_mods'
 require 'fileutils'
 require 'zlib'
 require 'pp'
@@ -103,7 +101,7 @@ module RGSS
     return obj unless obj.kind_of?(Array)
     seen = {}
     idx =
-    obj.each do |elem|
+      obj.each do |elem|
       next if elem.nil?
       if elem.instance_variable_defined?("@id")
         id = elem.instance_variable_get("@id")
@@ -259,7 +257,7 @@ module RGSS
     files -= src[:exclude]
 
     files.each do |file|
-       src_file = File.join(src[:directory], file)
+      src_file = File.join(src[:directory], file)
       dest_file = File.join(dest[:directory], change_extension(file, dest[:ext]))
 
       process_file(file, src_file, dest_file, dest[:ext], src[:load_file],
@@ -270,7 +268,7 @@ module RGSS
   def self.convert_saves(base, src, dest, options)
     save_files = files_with_extension(base, src[:ext])
     save_files.each do |file|
-       src_file = File.join(base, file)
+      src_file = File.join(base, file)
       dest_file = File.join(base, change_extension(file, dest[:ext]))
 
       process_file(file, src_file, dest_file, dest[:ext], src[:load_save],
@@ -300,7 +298,7 @@ module RGSS
     options[:line_width] ||= 130
 
     table_width = options[:table_width]
-    reset_const(Table, :MAX_ROW_LENGTH, table_width ? table_width : 20)
+    RGSS::reset_const(Table, :MAX_ROW_LENGTH, table_width ? table_width : 20)
 
     base = File.realpath(directory)
 

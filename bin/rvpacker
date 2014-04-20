@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 require 'trollop'
-require_relative "serialize"
+require 'RGSS'
 
 opts = Trollop::options do
   opt :action, "Action to perform on project (unpack|pack)", :short => "a", :type => String

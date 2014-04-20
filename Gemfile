@@ -1,5 +1,4 @@
-# A sample Gemfile
-source "https://rubygems.org"
-gem 'psych', '2.0.0'
-gem 'trollop'
-gem 'formatador'
+source 'https://rubygems.org'
+
+# Specify your gem's dependencies in rvpacker.gemspec
+gemspec
