@@ -92,9 +92,33 @@ module RGSS
   end
 
   def self.load_yaml_file(file)
+    obj = nil
     File.open(file, "rb") do |f|
-      return Psych::load(f)
+      obj = Psych::load(f)
     end
+    max = 0
+    return obj unless obj.kind_of?(Array)
+
+    obj.each do |elem|
+      next if elem.nil?
+      if elem.instance_variable_defined?("@id")
+        id = elem.instance_variable_get("@id")
+      else
+        id = nil
+        elem.instance_variable_set("@id", nil)
+      end
+      next if id.nil?
+      max = ((id + 1) unless id < max)
+    end
+    obj.each do |elem|
+      next if elem.nil?
+      id = elem.instance_variable_get("@id")
+      if id.nil?
+        elem.instance_variable_set("@id", max)
+        max += 1
+      end
+    end
+    return obj
   end
 
   def self.load_raw_file(file)
@@ -132,8 +156,11 @@ module RGSS
     oldest_time = File.mtime(dest_file) if check_time
 
     file_map, script_index, script_code = Hash.new(-1), [], {}
+
+    idx=0
     script_entries.each do |script|
-      magic_number, script_name, code = script[0], script[1], inflate(script[2])
+      idx += 1
+      magic_number, script_name, code = idx, script[1], inflate(script[2])
       script_name.force_encoding("UTF-8")
 
       if code.length > 0

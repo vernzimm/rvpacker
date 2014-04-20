@@ -9,6 +9,7 @@ opts = Trollop::options do
   opt :project, "RPG Maker Project directory", :short => "d", :type => String
   opt :force, "Update target even when source is older than target", :short => "f"
   opt :project_type, "Project type (vx|ace|xp)", :short => "t", :type => String
+  opt :verbose, "Print verbose information while processing", :short => "V"
 end
 
 directions = {
@@ -20,8 +21,7 @@ projecttypes = {
   "ace" => :ace,
   "xp" => :xp
 }
-
-puts opts.inspect
+$VERBOSE=opts[:verbose]
 
 RGSS.serialize(projecttypes[opts[:project_type]],
                directions[opts[:action]],
