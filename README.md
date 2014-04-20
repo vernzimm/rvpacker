@@ -12,7 +12,7 @@ rvpacker consists of 3 parts:
 Credit to SiCrane
 =================
 
-The RPG and RGSS libraries are copied/lifted/modified from SiCrane's original YAML importer/exporter on the gamedev forums. I initially just put them in github so I wouldn't lose them, and added the rvpacker script frontend, now I've done a good bit of refactoring on them.
+The RPG and RGSS libraries were originally taken from SiCrane's YAML importer/exporter on the gamedev forums. I initially just put them in github so I wouldn't lose them, and added the rvpacker script frontend. They are starting to drift a bit, but SiCrane still gets original credit for the grand majority of the work that rvpacker does.
 
 http://www.gamedev.net/topic/646333-rpg-maker-vx-ace-data-conversion-utility/
 
@@ -28,7 +28,7 @@ rvpacker is bundled as a rubygem
 Usage
 =====
 
-    $ ./rvpacker.rb --help
+    $ rvpacker --help
     Options:
 	    --action, -a <s>:   Action to perform on project (unpack|pack)
 	   --project, -d <s>:   RPG Maker Project directory
@@ -38,13 +38,13 @@ Usage
 
 For example, to unpack a RPG Maker VX Ace project in ~/Documents/RPGVXAce/Project1:
 
-    rvpacker.rb --action unpack --project ~/Documents/RPGVXAce/Project1 --project-type ace
+    rvpacker --action unpack --project ~/Documents/RPGVXAce/Project1 --project-type ace
 
 ... This will expand all Data/* files into (PROJECT)/YAML/ as YAML files (YAML is used because the object serialization data is retained, which ruby's YAML parser is very good at - otherwise I would have changed it to JSON). The Scripts will be unpacked as individual .rb files into (PROJECT)/Scripts/.
 
 To take a previously unpacked project, and pack it back up:
 
-    rvpacker.rb --action pack --project ~/Documents/RPGVXAce/Project1 --project-type ace
+    rvpacker --action pack --project ~/Documents/RPGVXAce/Project1 --project-type ace
 
 ... This will take all of the yaml files in (PROJECT)/YAML and all the scripts in (PROJECT)/Scripts, and repack all of your (PROJECT)/Data/* files. You can trust this to completely reassemble your Data/ directory, so long as the Scripts/ and YAML/ directories remain intact.
 
@@ -54,9 +54,9 @@ Workflow
 This is great for teams that are collaborating on an RPG Maker project. Just add a few steps to your existing workflow:
 
 * Checkout the project from version control
-* Run 'rvpacker.rb --action pack' on the project to repack it for the RPG Maker tool
+* Run 'rvpacker --action pack' on the project to repack it for the RPG Maker tool
 * Load up RPG Maker and do whatever you're going to do; save the project
-* Run 'rvpacker.rb --action unpack' on the project
+* Run 'rvpacker --action unpack' on the project
 * Commit everything to version control (ignore the Data directory since you don't need it anymore; use .gitignore or .hgignore or whatever)
 
 ... Now your project can be forked/merged in a much more safe/sane way, and you don't have to have someone bottlenecking the entire process.
