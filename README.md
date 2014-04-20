@@ -48,6 +48,13 @@ This is great for teams that are collaborating on an RPG Maker project. Just add
 
 ... Now your project can be forked/merged in a much more safe/sane way, and you don't have to have someone bottlenecking the entire process.
 
+Automatic ID generation
+=======================
+
+You can add new elements to the YAML files manually, and leave their 'id:' field set to 'null'. This will cause the rvpacker pack action to automatically assign them a new ID number at the end of the sequence (e.g., if you have 17 items, the new one becomes ID 18). This is mainly handy for adding new scripts to the project without having to open the RPG maker and paste the script in; just make the new script file, add its entry in YAML/Scripts.yaml, and the designer will have your script accessible the next time they repack and open the project.
+
+Also, the rvpacker tool sets the ID of script files to an autoincrementing integer. The scripts exist in the database with a magic number that I can't recreate, and nothing in the editor (RPG VX Ace anyway) seems to care if the magic number changes. It doesn't even affect the ordering. So in order to support adding new scripts with null IDs, like everything else, the magic numbers on scripts are disregarded and a new ID number is forced on the scripts when the rvpacker pack action occurs.
+
 Psych 2.0.0 Dependency
 ======================
 
