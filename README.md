@@ -1,4 +1,4 @@
-rpgmaker-collaboration
+rvpacker
 ======================
 
 A tool to unpack & pack rvdata2 files into text so they can be version controlled & collaborated on
