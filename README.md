@@ -6,7 +6,7 @@ A tool to unpack & pack rvdata2 files into text so they can be version controlle
 Credit to SiCrane
 =================
 
-These are copied/lifted/modified frmo SiCrane's original YAML importer/exporter on the gamedev forums. I initially just put them in github so I wouldn't lose them, and added the rvpacker script frontend.
+These are copied/lifted/modified from SiCrane's original YAML importer/exporter on the gamedev forums. I initially just put them in github so I wouldn't lose them, and added the rvpacker script frontend.
 
 http://www.gamedev.net/topic/646333-rpg-maker-vx-ace-data-conversion-utility/
 
@@ -34,6 +34,19 @@ To take a previously unpacked project, and pack it back up:
     rvpacker.rb --action pack --project ~/Documents/RPGVXAce/Project1 --project-type ace
 
 ... This will take all of the yaml files in (PROJECT)/YAML and all the scripts in (PROJECT)/Scripts, and repack all of your (PROJECT)/*rvdata2 files. You can trust this to completely reassemble your Data/ directory, so long as the Scripts/ and YAML/ directories remain intact.
+
+Workflow
+========
+
+This is great for teams that are collaborating on an RPG Maker project. Just add a few steps to your existing workflow:
+
+* Checkout the project from version control
+* Run 'rvpacker.rb --action pack' on the project to repack it for the RPG Maker tool
+* Load up RPG Maker and do whatever you're going to do; save the project
+* Run 'rvpacker.rb --action unpack' on the project
+* Commit everything to version control (ignore the Data directory since you don't need it anymore; use .gitignore or .hgignore or whatever)
+
+... Now your project can be forked/merged in a much more safe/sane way, and you don't have to have someone bottlenecking the entire process.
 
 Psych 2.0.0 Dependency
 ======================
