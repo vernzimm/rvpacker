@@ -1,7 +1,7 @@
 rvpacker
 ======================
 
-A tool to unpack & pack rvdata2 files into text so they can be version controlled & collaborated on
+A tool to unpack & pack RPGMaker data files into text so they can be version controlled & collaborated on
 
 rvpacker consists of 3 parts:
 
