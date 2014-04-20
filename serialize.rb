@@ -23,6 +23,8 @@ require_relative './psych_mods'
 
 require 'fileutils'
 require 'zlib'
+require 'pp'
+require 'formatador'
 
 module RGSS
   def self.change_extension(file, new_ext)
@@ -92,13 +94,15 @@ module RGSS
   end
 
   def self.load_yaml_file(file)
+    formatador = Formatador.new
     obj = nil
     File.open(file, "rb") do |f|
       obj = Psych::load(f)
     end
     max = 0
     return obj unless obj.kind_of?(Array)
-
+    seen = {}
+    idx =
     obj.each do |elem|
       next if elem.nil?
       if elem.instance_variable_defined?("@id")
@@ -108,6 +112,26 @@ module RGSS
         elem.instance_variable_set("@id", nil)
       end
       next if id.nil?
+
+      if seen.has_key?(id)
+        formatador.display_line("[red]#{file}: Duplicate ID #{id}[/]")
+        formatador.indent {
+          formatador.indent {
+            elem.pretty_inspect.split(/\n/).each do |line|
+              formatador.display_line("[red]#{line}[/]")
+            end
+          }
+          formatador.display_line
+          formatador.display_line("[red]Last seen at:\n[/]")
+          formatador.indent {
+            elem.pretty_inspect.split(/\n/).each do |line|
+              formatador.display_line("[red]#{line}[/]")
+            end
+          }
+        }
+        exit
+      end
+      seen[id] = elem
       max = ((id + 1) unless id < max)
     end
     obj.each do |elem|
@@ -147,7 +171,8 @@ module RGSS
 
 
   def self.scripts_to_text(dirs, src, dest, options)
-     src_file = File.join(dirs[:data], src)
+    formatador = Formatador.new
+    src_file = File.join(dirs[:data], src)
     dest_file = File.join(dirs[:yaml], dest)
     raise "Missing #{src}" unless File.exists?(src_file)
 
@@ -180,16 +205,17 @@ module RGSS
 
     src_time = File.mtime(src_file)
     if check_time && (src_time - 1) < oldest_time
-      puts "Skipping scripts to text" if $VERBOSE
+      formatador.display_line("[yellow]Skipping scripts to text[/]") if $VERBOSE
     else
-      puts "Converting scripts to text" if $VERBOSE
+      formatador.display_line("[green]Converting scripts to text[/]") if $VERBOSE
       dump(:dump_yaml_file, dest_file, script_index, src_time, options)
       script_code.each {|file, code| dump(:dump_raw_file, file, code, src_time, options)}
     end
   end
 
   def self.scripts_to_binary(dirs, src, dest, options)
-     src_file = File.join(dirs[:yaml], src)
+    formatador = Formatador.new
+    src_file = File.join(dirs[:yaml], src)
     dest_file = File.join(dirs[:data], dest)
     raise "Missing #{src}" unless File.exists?(src_file)
     check_time = !options[:force] && File.exists?(dest_file)
@@ -209,19 +235,20 @@ module RGSS
       script_entries.push([magic_number, script_name, deflate(code)])
     end
     if check_time && (newest_time - 1) < File.mtime(dest_file)
-      puts "Skipping scripts to binary" if $VERBOSE
+      formatador.display_line("[yellow]Skipping scripts to binary[/]") if $VERBOSE
     else
-      puts "Converting scripts to binary" if $VERBOSE
+      formatador.display_line("[green]Converting scripts to binary[/]") if $VERBOSE
       dump(:dump_data_file, dest_file, script_entries, newest_time, options)
     end
   end
 
   def self.process_file(file, src_file, dest_file, dest_ext, loader, dumper, options)
+    formatador = Formatador.new
     src_time = File.mtime(src_file)
     if !options[:force] && File.exists?(dest_file) && (src_time - 1) < File.mtime(dest_file)
-      puts "Skipping #{file}" if $VERBOSE
+      formatador.display_line("[yellow]Skipping #{file}[/]") if $VERBOSE
     else
-      puts "Converting #{file} to #{dest_ext}" if $VERBOSE
+      formatador.display_line("[green]Converting #{file} to #{dest_ext}[/]") if $VERBOSE
       data = load(loader, src_file)
       dump(dumper, dest_file, data, src_time, options)
     end
