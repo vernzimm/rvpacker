@@ -25,6 +25,8 @@ rvpacker is bundled as a rubygem
 
 ... dependencies will be handled automatically.
 
+If you are a windows user and rvpacker complains about being unable to install psych, try downloading the rvpacker source and doing 'bundle install'. That, for some reason, works. (Don't ask me, I think ruby is retarded here.)
+
 Usage
 =====
 
