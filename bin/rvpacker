@@ -10,6 +10,7 @@ opts = Trollop::options do
   opt :force, "Update target even when source is older than target", :short => "f"
   opt :project_type, "Project type (vx|ace|xp)", :short => "t", :type => String
   opt :verbose, "Print verbose information while processing", :short => "V"
+  opt :database, "Only work on the given database", :short => "D", :type => String
 end
 
 directions = {
@@ -28,7 +29,8 @@ RGSS.serialize(projecttypes[opts[:project_type]],
                opts[:project],
                { :force => (opts[:force] ? true : false),
                  :line_width => -1,
-                 :table_width => -1
+                 :table_width => -1,
+                 :database => opts[:database]
                }
                )
 
