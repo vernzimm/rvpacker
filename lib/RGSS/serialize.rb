@@ -243,7 +243,7 @@ module RGSS
   def self.process_file(file, src_file, dest_file, dest_ext, loader, dumper, options)
     formatador = Formatador.new
     fbase = File.basename(file, File.extname(file))
-    return if options[:database].nil? or options[:database].downcase != fbase.downcase
+    return if (! options[:database].nil? ) and (options[:database].downcase != fbase.downcase)
     src_time = File.mtime(src_file)
     if !options[:force] && File.exists?(dest_file) && (src_time - 1) < File.mtime(dest_file)
       formatador.display_line("[yellow]Skipping #{file}[/]") if $VERBOSE
