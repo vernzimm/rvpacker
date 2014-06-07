@@ -94,6 +94,7 @@ You can add new elements to the YAML files manually, and leave their 'id:' field
 
 Also, the rvpacker tool sets the ID of script files to an autoincrementing integer. The scripts exist in the database with a magic number that I can't recreate, and nothing in the editor (RPG VX Ace anyway) seems to care if the magic number changes. It doesn't even affect the ordering. So in order to support adding new scripts with null IDs, like everything else, the magic numbers on scripts are disregarded and a new ID number is forced on the scripts when the rvpacker pack action occurs.
 
+Note that this does not apply to Map files. Do not try changing the map ID numbers manually (see the "Avoiding Map Collisions" workflow, above, and "Why rvpacker can't help with map collisions", below).
 
 Why rvpacker can't help with map collisions
 ===========================================
