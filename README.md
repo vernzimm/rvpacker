@@ -73,7 +73,7 @@ One thing that rvpacker really can't help you with right now (and, ironically, p
 * Developer B makes a new map, in a different branch. It also gets saved by the editor as Map011.
 * Developer A and Developer B attempt to merge their changes. The merge fails because of the collision on the Map011 file.
 
-The best way to avoid this that I can see is to use blocks of pre-allocated maps. Basically you just appoint one person in your project to be principally responsible for the map assets. It then becomes this person's responsibility to allocate maps in "blocks", so that people can work on maps in a distributed way without clobbering one another. The workflow looks like this:
+The best way to avoid this that I can see is to use blocks of pre-allocated maps. You appoint one person in your project to be principally responsible for the map assets. It then becomes this person's responsibility to allocate maps in "blocks", so that people can work on maps in a distributed way without clobbering one another. The workflow looks like this:
 
 * The project has 10 maps in it, total.
 * Developer A needs to make 4 maps. He sends a request to the "map owner", requesting a block of 4 maps.
