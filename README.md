@@ -9,6 +9,13 @@ rvpacker consists of 3 parts:
 * RGSS library (some more classes for RPGMaker serialization)
 * rvpacker (the script you call on the frontend)
 
+Legal Notice
+============
+
+At the request of my employer, Nintendo of America, I have discontinued all work on this project. They have not told me to take it down, but I am no longer allowed to continue working on it.
+
+At this time, this product is now unsupported. Please fork it if you want development to continue. Thank you, and I'm sorry.
+
 Credit to SiCrane
 =================
 
