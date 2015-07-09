@@ -1,6 +1,6 @@
 require 'rvpacker/rgss'
 require 'rvpacker/rgss/basic_coder'
 require 'rvpacker/rgss/psych_mods'
-require 'rvpacker/serialize'
+require 'rvpacker/rgss/serialize'
 require 'rvpacker/rpg'
 require 'rvpacker/version'
