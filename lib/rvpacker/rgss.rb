@@ -47,7 +47,7 @@ class Table
         row_length = (stride + block_length - 1) / block_length
         rows = rows.flat_map { |x| x.each_slice(row_length).to_a }
       end
-      rows = rows.map { |x| x.map { |y| '%04x' % y }.join(' ') }
+      rows.map! { |x| x.map { |y| '%04x' % y }.join(' ') }
       coder['data'] = rows
     else
       coder['data'] = []
