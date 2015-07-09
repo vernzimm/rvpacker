@@ -1,3 +1,5 @@
+require 'rvpacker/rgss'
+
 module RGSS
   module BasicCoder
     def encode_with(coder)
