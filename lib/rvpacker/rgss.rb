@@ -1,21 +1,23 @@
 =begin
 Copyright (c) 2013 Howard Jeng
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this
-software and associated documentation files (the "Software"), to deal in the Software
-without restriction, including without limitation the rights to use, copy, modify, merge,
-publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
-to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or
-substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 =end
 
 require 'scanf'
@@ -43,13 +45,13 @@ class Table
       if MAX_ROW_LENGTH != -1 && stride > MAX_ROW_LENGTH
         block_length = (stride + MAX_ROW_LENGTH - 1) / MAX_ROW_LENGTH
         row_length = (stride + block_length - 1) / block_length
-        rows = rows.collect{|x| x.each_slice(row_length).to_a}.flatten(1)
+        rows = rows.flat_map { |x| x.each_slice(row_length).to_a }
       end
-      rows = rows.collect{|x| x.collect{|y| "%04x" % y}.join(" ")}
-        coder['data'] = rows
+      rows = rows.map { |x| x.map { |y| '%04x' % y }.join(' ') }
+      coder['data'] = rows
     else
       coder['data'] = []
-      end
+    end
   end
 
   def init_with(coder)
@@ -57,12 +59,12 @@ class Table
     @x = coder['x']
     @y = coder['y']
     @z = coder['z']
-    @data = coder['data'].collect{|x| x.split(" ").collect{|y| y.hex}}.flatten
+    @data = coder['data'].flat_map { |x| x.split(' ').map { |y| y.hex } }
     items = @x * @y * @z
     raise "Size mismatch loading Table from YAML" unless items == @data.length
   end
 
-  def _dump(*ignored)
+  def _dump(depth = 0)
     return [@dim, @x, @y, @z, @x * @y * @z, *@data].pack('L5 S*')
   end
 
@@ -76,7 +78,7 @@ class Color
     @r, @g, @b, @a = *bytes.unpack('D4')
   end
 
-  def _dump(*ignored)
+  def _dump(depth = 0)
     return [@r, @g, @b, @a].pack('D4')
   end
 
@@ -90,7 +92,7 @@ class Tone
     @r, @g, @b, @a = *bytes.unpack('D4')
   end
 
-  def _dump(*ignored)
+  def _dump(depth = 0)
     return [@r, @g, @b, @a].pack('D4')
   end
 
@@ -104,7 +106,7 @@ class Rect
     @x, @y, @width, @height = *bytes.unpack('i4')
   end
 
-  def _dump(*ignored)
+  def _dump(depth = 0)
     return [@x, @y, @width, @height].pack('i4')
   end
 
@@ -115,7 +117,9 @@ end
 
 module RGSS
   def self.remove_defined_method(scope, name)
-    scope.send(:remove_method, name) if scope.instance_methods(false).include?(name)
+    if scope.instance_methods(false).include?(name)
+      scope.send(:remove_method, name) 
+    end
   end
 
   def self.reset_method(scope, name, method)
@@ -149,8 +153,10 @@ module RGSS
     return arr
   end
 
-  require 'RGSS/BasicCoder'
-  require 'RPG'
+  # require 'RGSS/BasicCoder'
+  # require 'RPG'
+  require 'rvpacker/rgss/basic_coder'
+  require 'rvpacker/rpg'
 
   # creates an empty class in a potentially nested scope
   def self.process(root, name, *args)
@@ -183,52 +189,50 @@ module RGSS
    [:Game_Message], [:Game_Party], [:Game_Picture], [:Game_Pictures], [:Game_Player],
    [:Game_System], [:Game_Timer], [:Game_Troop], [:Game_Screen], [:Game_Vehicle],
    [:Interpreter]
-  ].each {|x| process(Object, *x)}
+  ].each { |x| process(Object, *x) }
 
   def self.setup_system(version, options)
-    # convert variable and switch name arrays to a hash when serialized
-    # if round_trip isn't set change version_id to fixed number
+    # Convert variable and switch name arrays to a hash when serialized if
+    # `:round_trip` isn't set change `version_id` to fixed number.
     if options[:round_trip]
       iso = ->(val) { return val }
       reset_method(RPG::System, :reduce_string, iso)
       reset_method(RPG::System, :map_version, iso)
       reset_method(Game_System, :map_version, iso)
     else
-      reset_method(RPG::System, :reduce_string, ->(str) {
-                               return nil if str.nil?
-                               stripped = str.strip
-                               return stripped.empty? ? nil : stripped
-                             })
-      # These magic numbers should be different. If they are the same, the saved version
-      # of the map in save files will be used instead of any updated version of the map
-      reset_method(RPG::System, :map_version, ->(ignored) { return 12345678 })
-      reset_method(Game_System, :map_version, ->(ignored) { return 87654321 })
+      reset_method(RPG::System, :reduce_string, ->(str) do
+        return nil if str.nil?
+        stripped = str.strip
+        stripped.empty? ? nil : stripped
+      end)
+      # These magic numbers should be different. If they are the same, the
+      # saved version of the map in save files will be used instead of any 
+      # updated version of the map.
+      reset_method(RPG::System, :map_version, ->(ignored) { 12345678 })
+      reset_method(Game_System, :map_version, ->(ignored) { 87654321 })
     end
   end
 
   def self.setup_interpreter(version)
-    # Game_Interpreter is marshalled differently in VX Ace
+    # `Game_Interpreter` is marshalled differently in VX Ace.
     if version == :ace
-      reset_method(Game_Interpreter, :marshal_dump, ->{
-                               return @data
-                             })
-      reset_method(Game_Interpreter, :marshal_load, ->(obj) {
-                               @data = obj
-                             })
+      reset_method(Game_Interpreter, :marshal_dump, -> { @data })
+      reset_method(Game_Interpreter, :marshal_load, ->(obj) { @data = obj })
     else
-        remove_defined_method(Game_Interpreter, :marshal_dump)
+      remove_defined_method(Game_Interpreter, :marshal_dump)
       remove_defined_method(Game_Interpreter, :marshal_load)
     end
   end
 
   def self.setup_event_command(version, options)
-    # format event commands to flow style for the event codes that aren't move commands
+    # Format event commands to flow style for the event codes that aren't move
+    # commands.
     if options[:round_trip]
       reset_method(RPG::EventCommand, :clean, ->{})
     else
-      reset_method(RPG::EventCommand, :clean, ->{
-                               @parameters[0].rstrip! if @code == 401
-                             })
+      reset_method(RPG::EventCommand, :clean, -> do
+        @parameters[0].rstrip! if @code == 401
+      end)
     end
     reset_const(RPG::EventCommand, :MOVE_LIST_CODE, version == :xp ? 209 : 205)
   end
@@ -251,26 +255,26 @@ module RGSS
   RUBY_EXT     = '.rb'
 
   def self.get_data_directory(base)
-    return File.join(base, 'Data')
+    File.join(base, 'Data')
   end
 
   def self.get_yaml_directory(base)
-    return File.join(base, 'YAML')
+    File.join(base, 'YAML')
   end
 
   def self.get_script_directory(base)
-    return File.join(base, 'Scripts')
+    File.join(base, 'Scripts')
   end
 
   class Game_Switches
     include RGSS::BasicCoder
 
     def encode(name, value)
-      return array_to_hash(value)
+      array_to_hash(value)
     end
 
     def decode(name, value)
-      return hash_to_array(value)
+      hash_to_array(value)
     end
   end
 
@@ -278,11 +282,11 @@ module RGSS
     include RGSS::BasicCoder
 
     def encode(name, value)
-      return array_to_hash(value)
+      array_to_hash(value)
     end
 
     def decode(name, value)
-      return hash_to_array(value)
+      hash_to_array(value)
     end
   end
 
@@ -290,17 +294,11 @@ module RGSS
     include RGSS::BasicCoder
 
     def encode(name, value)
-      return Hash[value.collect {|pair|
-                    key, value = pair
-                    next ["%03d %03d %s" % key, value]
-                  }]
+      Hash[value.map { |(key, value)| next ['%03d %03d %s' % key, value] }]
     end
 
     def decode(name, value)
-      return Hash[value.collect {|pair|
-                    key, value = pair
-                    next [key.scanf("%d %d %s"), value]
-                  }]
+      Hash[value.map { |(key, value)| next [key.scanf('%d %d %s'), value] }]
     end
   end
 
@@ -308,13 +306,10 @@ module RGSS
     include RGSS::BasicCoder
 
     def encode(name, value)
-      if name == 'version_id'
-        return map_version(value)
-      else
-        return value
-      end
+      name == 'version_id' ? map_version(value) : value
     end
   end
 
-  require 'RGSS/serialize'
+  # require 'RGSS/serialize'
+  require 'rvpacker/rgss/serialize'
 end

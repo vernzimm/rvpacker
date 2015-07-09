@@ -1,24 +1,27 @@
 =begin
 Copyright (c) 2013 Howard Jeng
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this
-software and associated documentation files (the "Software"), to deal in the Software
-without restriction, including without limitation the rights to use, copy, modify, merge,
-publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
-to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or
-substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 =end
 
-require 'RGSS/psych_mods'
+# require 'RGSS/psych_mods'
+require 'rvpacker/rgss/psych_mods'
 require 'fileutils'
 require 'zlib'
 require 'pp'
@@ -26,54 +29,43 @@ require 'formatador'
 
 module RGSS
   def self.change_extension(file, new_ext)
-    return File.basename(file, '.*') + new_ext
+    File.basename(file, '.*') << new_ext
   end
 
   def self.sanitize_filename(filename)
-    return filename.gsub(/[^0-9A-Za-z]+/, '_')
+    filename.gsub(/[^0-9A-Za-z]+/, '_')
   end
 
   def self.files_with_extension(directory, extension)
-    return Dir.entries(directory).select{|file| File.extname(file) == extension}
+    Dir.entries(directory).select{|file| File.extname(file) == extension}
   end
 
   def self.inflate(str)
-    text = Zlib::Inflate.inflate(str)
-    return text.force_encoding("UTF-8")
+    Zlib::Inflate.inflate(str).force_encoding('utf-8')
   end
 
   def self.deflate(str)
-    return Zlib::Deflate.deflate(str, Zlib::BEST_COMPRESSION)
+    Zlib::Deflate.deflate(str, Zlib::BEST_COMPRESSION)
   end
 
 
   def self.dump_data_file(file, data, time, options)
-    File.open(file, "wb") do |f|
-      Marshal.dump(data, f)
-    end
+    File.open(file, 'wb') { |f| Marshal.dump(data, f) }
     File.utime(time, time, file)
   end
 
   def self.dump_yaml_file(file, data, time, options)
-    File.open(file, "wb") do |f|
-      Psych::dump(data, f, options)
-    end
+    File.open(file, 'wb') { |f| Psych.dump(data, f, options) }
     File.utime(time, time, file)
   end
 
   def self.dump_save(file, data, time, options)
-    File.open(file, "wb") do |f|
-      data.each do |chunk|
-        Marshal.dump(chunk, f)
-      end
-    end
+    File.open(file, 'wb') { |f| data.each { |chunk| Marshal.dump(chunk, f) } }
     File.utime(time, time, file)
   end
 
   def self.dump_raw_file(file, data, time, options)
-    File.open(file, "wb") do |f|
-      f.write(data)
-    end
+    File.open(file, 'wb') { |f| f.write(data) }
     File.utime(time, time, file)
   end
 
@@ -84,79 +76,69 @@ module RGSS
     raise
   end
 
-
   def self.load_data_file(file)
-    File.open(file, "rb") do |f|
-      return Marshal.load(f)
-    end
+    File.open(file, 'rb') { |f| Marshal.load(f) }
   end
 
   def self.load_yaml_file(file)
     formatador = Formatador.new
     obj = nil
-    File.open(file, "rb") do |f|
-      obj = Psych::load(f)
-    end
+    File.open(file, 'rb') { |f| obj = Psych.load(f) }
     max = 0
     return obj unless obj.kind_of?(Array)
     seen = {}
     idx =
       obj.each do |elem|
       next if elem.nil?
-      if elem.instance_variable_defined?("@id")
-        id = elem.instance_variable_get("@id")
+      if elem.instance_variable_defined?(:@id)
+        id = elem.instance_variable_get(:@id)
       else
         id = nil
-        elem.instance_variable_set("@id", nil)
+        elem.instance_variable_set(:@id, nil)
       end
       next if id.nil?
 
       if seen.has_key?(id)
         formatador.display_line("[red]#{file}: Duplicate ID #{id}[/]")
-        formatador.indent {
-          formatador.indent {
+        formatador.indent do
+          formatador.indent do
             elem.pretty_inspect.split(/\n/).each do |line|
               formatador.display_line("[red]#{line}[/]")
             end
-          }
+          end
           formatador.display_line
           formatador.display_line("[red]Last seen at:\n[/]")
-          formatador.indent {
+          formatador.indent do
             elem.pretty_inspect.split(/\n/).each do |line|
               formatador.display_line("[red]#{line}[/]")
             end
-          }
-        }
-        exit
+          end
+        end
+        exit 1
       end
       seen[id] = elem
       max = ((id + 1) unless id < max)
     end
     obj.each do |elem|
       next if elem.nil?
-      id = elem.instance_variable_get("@id")
+      id = elem.instance_variable_get(:@id)
       if id.nil?
-        elem.instance_variable_set("@id", max)
+        elem.instance_variable_set(:@id, max)
         max += 1
       end
     end
-    return obj
+    obj
   end
 
   def self.load_raw_file(file)
-    File.open(file, "rb") do |f|
-      return f.read
-    end
+    File.binread(file)
   end
 
   def self.load_save(file)
-    File.open(file, "rb") do |f|
+    File.open(file, 'rb') do |f|
       data = []
-      while not f.eof?
-        o = Marshal.load(f)
-        data.push(o)
-      end
-      return data
+      data << Marshal.load(f) until f.eof?
+      data
     end
   end
 
@@ -166,7 +148,6 @@ module RGSS
     warn "Exception loading #{file}"
     raise
   end
-
 
   def self.scripts_to_text(dirs, src, dest, options)
     formatador = Formatador.new
@@ -291,16 +272,16 @@ module RGSS
   #           :table_width - maximum number of entries per row for table data, -1 for no
   #                          table row limit (default 20)
   def self.serialize(version, direction, directory, options = {})
-    raise "#{directory} not found" unless File.exist?(directory)
+    raise "#{directory} not found" unless File.directory?(directory)
 
     setup_classes(version, options)
-    options = options.clone()
+    options = options.dup
     options[:sort] = true if [:vx, :xp].include?(version)
     options[:flow_classes] = FLOW_CLASSES
     options[:line_width] ||= 130
 
     table_width = options[:table_width]
-    RGSS::reset_const(Table, :MAX_ROW_LENGTH, table_width ? table_width : 20)
+    RGSS.reset_const(Table, :MAX_ROW_LENGTH, table_width ? table_width : 20)
 
     base = File.realpath(directory)
 
@@ -311,9 +292,7 @@ module RGSS
       :script => get_script_directory(base)
     }
 
-    dirs.values.each do |d|
-      FileUtils.mkdir(d) unless File.exists?(d)
-    end
+    dirs.each_value { |d| FileUtils.mkdir(d) unless File.directory?(d) }
 
     exts = {
       :ace => ACE_DATA_EXT,
@@ -343,12 +322,12 @@ module RGSS
       :dump_save => :dump_save
     }
 
-    if options[:database].nil? or options[:database].downcase == 'scripts'
+    if options[:database].nil? || options[:database].downcase == 'scripts'
       convert_scripts = true
     else
       convert_scripts = false
     end
-    if options[:database].nil? or options[:database].downcase == 'saves'
+    if options[:database].nil? || options[:database].downcase == 'saves'
       convert_saves = true
     else
       convert_saves = false

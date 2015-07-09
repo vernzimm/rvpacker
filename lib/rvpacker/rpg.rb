@@ -1,4 +1,6 @@
-require 'RGSS'
+# require 'RGSS'
+require 'rvpacker/rgss'
+
 module RPG
   class System
     include RGSS::BasicCoder
