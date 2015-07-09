@@ -3,7 +3,7 @@
 
 require 'trollop'
 require 'rvpacker/version'
-require 'RGSS'
+require 'rvpacker/rgss'
 
 module Rvpacker
   def self.project_type_for(dir)
