@@ -20,14 +20,15 @@ EOS
     type: String
   opt :pack, 'Pack YAML into binary RPG Maker data', short: 'p'
   opt :unpack, 'Unpack binary RPG Maker data to YAML', short: 'u'
-  opt :project, 'RPG Maker project directory', short: 'd', type: String,
-    default: Dir.pwd
-  opt :project_type, 'Project type (xp|vx|ace)', short: 't', type: String,
-    default: Rvpacker.project_type_for(Dir.pwd)
+  opt :project, 'RPG Maker project directory', short: 'd', type: String
+  opt :project_type, 'Project type (xp|vx|ace)', short: 't', type: String
+  opt :database, 'Only work on the given database', short: 'D', type: String
   opt :force, 'Update target even when source is older than target', short: 'f'
   opt :verbose, 'Print verbose information while processing', short: 'V'
-  opt :database, 'Only work on the given database', short: 'D', type: String
 end
+
+opts[:project]      ||= Dir.pwd
+opts[:project_type] ||= Rvpacker.project_type_for(opts[:project])
 
 unless Rvpacker.valid_project?(opts[:project])
   Trollop.die("#{opts[:project]} is not a valid RPG Maker project")
