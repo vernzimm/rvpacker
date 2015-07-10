@@ -8,7 +8,11 @@ Gem::Specification.new do |spec|
   spec.version       = Rvpacker::VERSION
   spec.authors       = ["Howard Jeng", "Andrew Kesterson", 'Rachel Wall']
   spec.email         = ['solistra@gmx.com']
-  spec.summary       = %q{Pack and unpack RPG Maker data files}
+  spec.summary       = 'A tool to pack and unpack RPG Maker data files.'
+  spec.description   = %{
+    A tool to pack and unpack binary RPG Maker project data to and from YAML so
+    it can be version-controlled and collaborated on.
+  }.gsub(/\s+/, ' ').strip
   spec.homepage      = "https://github.com/Solistra/rvpacker"
   spec.license       = 'MIT'
 
