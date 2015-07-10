@@ -6,7 +6,7 @@ require 'rvpacker/version'
 Gem::Specification.new do |spec|
   spec.name          = 'rvpacker'
   spec.version       = Rvpacker::VERSION
-  spec.authors       = ["Howard Jeng", "Andrew Kesterson", 'Solistra']
+  spec.authors       = ["Howard Jeng", "Andrew Kesterson", 'Rachel Wall']
   spec.email         = ['solistra@gmx.com']
   spec.summary       = %q{Pack and unpack RPG Maker data files}
   spec.homepage      = "https://github.com/Solistra/rvpacker"
