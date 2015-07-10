@@ -4,9 +4,15 @@
 require 'trollop'
 require 'rvpacker'
 
+version_string =
+%{rvpacker #{Rvpacker::VERSION}
+Copyright (c) 2013 Howard Jeng, 2014-2015 Andrew Kesterson, Rachel Wall}
+
 opts = Trollop.options do
-  version "rvpacker #{Rvpacker::VERSION}"
+  version version_string
   banner <<-EOS
+#{version_string}
+
 rvpacker packs and unpacks binary RPG Maker project data to and from YAML so
 that it can be version-controlled and collaborated on.
 
@@ -16,14 +22,13 @@ Usage:
 Options:
 EOS
 
-  opt :action, 'Action to perform on the project (pack|unpack)', short: 'a',
-    type: String
-  opt :pack, 'Pack YAML into binary RPG Maker data', short: 'p'
-  opt :unpack, 'Unpack binary RPG Maker data to YAML', short: 'u'
+  opt :action, 'Action to perform on the project (pack|unpack)', type: String
+  opt :pack, 'Pack YAML into binary RPG Maker data'
+  opt :unpack, 'Unpack binary RPG Maker data to YAML'
   opt :project, 'RPG Maker project directory', short: 'd', type: String
   opt :project_type, 'Project type (xp|vx|ace)', short: 't', type: String
   opt :database, 'Only work on the given database', short: 'D', type: String
-  opt :force, 'Update target even when source is older than target', short: 'f'
+  opt :force, 'Update target even when source is older than target'
   opt :verbose, 'Print verbose information while processing', short: 'V'
 end
 
