@@ -7,53 +7,41 @@ module RPG
     HASHED_VARS = ['variables', 'switches']
   end
 
-  def self.array_to_hash(arr, &block)
-    h = {}
-    arr.each_with_index do |val, index|
-      r = block_given? ? block.call(val) : val
-      h[index] = r unless r.nil?
-    end
-    if arr.length > 0
-      last = arr.length - 1
-      h[last] = nil unless h.has_key?(last)
-    end
-    return h
-  end
-
   def encode(name, value)
     if HASHED_VARS.include?(name)
-      return array_to_hash(value) {|val| reduce_string(val)}
+      array_to_hash(value) { |val| reduce_string(val) }
     elsif name == 'version_id'
-      return map_version(value)
+      map_version(value)
     else
-      return value
+      value
     end
   end
 
   def decode(name, value)
-    if HASHED_VARS.include?(name)
-      return hash_to_array(value)
-    else
-      return value
-    end
+    HASHED_VARS.include?(name) ? hash_to_array(value) : value
   end
 
   class EventCommand
     def encode_with(coder)
-      raise 'Unexpected number of instance variables' if instance_variables.length != 3
+      if instance_variables.length != 3
+        raise 'Unexpected number of instance variables'
+      end
       clean
 
-      case @code
-      when MOVE_LIST_CODE # move list
-        coder.style = Psych::Nodes::Mapping::BLOCK
-      else
-        coder.style = Psych::Nodes::Mapping::FLOW
-      end
-      coder['i'], coder['c'], coder['p'] = @indent, @code, @parameters
+      coder.style =
+        case @code
+        when MOVE_LIST_CODE then Psych::Nodes::Mapping::BLOCK
+        else Psych::Nodes::Mapping::FLOW
+        end
+      coder['c'] = @code
+      coder['i'] = @indent
+      coder['p'] = @parameters
     end
 
     def init_with(coder)
-      @indent, @code, @parameters = coder['i'], coder['c'], coder['p']
+      @code       = coder['c']
+      @indent     = coder['i']
+      @parameters = coder['p']
     end
   end
 end

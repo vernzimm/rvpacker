@@ -2,6 +2,12 @@ require 'rvpacker/rgss'
 
 module RGSS
   module BasicCoder
+    INCLUDED_CLASSES = []
+
+    def self.included(mod)
+      INCLUDED_CLASSES << mod
+    end
+
     def encode_with(coder)
       ivars.each do |var|
         name  = var[1..-1]
@@ -26,12 +32,6 @@ module RGSS
 
     def ivars
       instance_variables
-    end
-
-    INCLUDED_CLASSES = []
-
-    def self.included(mod)
-      INCLUDED_CLASSES << mod
     end
 
     def self.set_ivars_methods(version)

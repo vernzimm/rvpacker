@@ -24,21 +24,22 @@ require 'rvpacker/rpg'
 require 'scanf'
 
 class Table
-  def initialize(bytes)
-    @dim, @x, @y, @z, items, *@data = bytes.unpack('L5 S*')
-    raise "Size mismatch loading Table from data" unless items == @data.length
-    raise "Size mismatch loading Table from data" unless @x * @y * @z == items
-  end
-
   MAX_ROW_LENGTH = 20
+
+  def initialize(bytes)
+    @dim, @x, @y, @z, size, *@data = bytes.unpack('L5S*')
+    unless size == @data.length && (@x * @y * @z == size)
+      raise 'Size mismatch loading Table from data'
+    end
+  end
 
   def encode_with(coder)
     coder.style = Psych::Nodes::Mapping::BLOCK
 
     coder['dim'] = @dim
-    coder['x'] = @x
-    coder['y'] = @y
-    coder['z'] = @z
+    coder['x']   = @x
+    coder['y']   = @y
+    coder['z']   = @z
 
     if @x * @y * @z > 0
       stride = @x < 2 ? (@y < 2 ? @z : @y) : @x
@@ -48,7 +49,7 @@ class Table
         row_length = (stride + block_length - 1) / block_length
         rows = rows.flat_map { |x| x.each_slice(row_length).to_a }
       end
-      rows.map! { |x| x.map { |y| '%04x' % y }.join(' ') }
+      rows.map! { |x| x.map! { |y| '%04x' % y }.join(' ') }
       coder['data'] = rows
     else
       coder['data'] = []
@@ -56,45 +57,45 @@ class Table
   end
 
   def init_with(coder)
-    @dim = coder['dim']
-    @x = coder['x']
-    @y = coder['y']
-    @z = coder['z']
-    @data = coder['data'].flat_map { |x| x.split(' ').map { |y| y.hex } }
+    @dim  = coder['dim']
+    @x    = coder['x']
+    @y    = coder['y']
+    @z    = coder['z']
+    @data = coder['data'].flat_map { |x| x.split.map(&:hex) }
     items = @x * @y * @z
-    raise "Size mismatch loading Table from YAML" unless items == @data.length
+    raise 'Size mismatch loading Table from YAML' unless items == @data.length
   end
 
   def _dump(depth = 0)
-    return [@dim, @x, @y, @z, @x * @y * @z, *@data].pack('L5 S*')
+    [@dim, @x, @y, @z, @x * @y * @z, *@data].pack('L5S*')
   end
 
   def self._load(bytes)
     Table.new(bytes)
-    end
+  end
 end
 
 class Color
   def initialize(bytes)
-    @r, @g, @b, @a = *bytes.unpack('D4')
+    @red, @green, @blue, @alpha = *bytes.unpack('D4')
   end
 
   def _dump(depth = 0)
-    return [@r, @g, @b, @a].pack('D4')
+    [@red, @green, @blue, @alpha].pack('D4')
   end
 
   def self._load(bytes)
-      Color.new(bytes)
+    Color.new(bytes)
   end
 end
 
 class Tone
   def initialize(bytes)
-    @r, @g, @b, @a = *bytes.unpack('D4')
+    @red, @green, @blue, @gray = *bytes.unpack('D4')
   end
 
   def _dump(depth = 0)
-    return [@r, @g, @b, @a].pack('D4')
+    [@red, @green, @blue, @gray].pack('D4')
   end
 
   def self._load(bytes)
@@ -108,7 +109,7 @@ class Rect
   end
 
   def _dump(depth = 0)
-    return [@x, @y, @width, @height].pack('i4')
+    [@x, @y, @width, @height].pack('i4')
   end
 
   def self._load(bytes)
@@ -207,8 +208,8 @@ module RGSS
       # These magic numbers should be different. If they are the same, the
       # saved version of the map in save files will be used instead of any
       # updated version of the map.
-      reset_method(RPG::System, :map_version, ->(ignored) { 12345678 })
-      reset_method(Game_System, :map_version, ->(ignored) { 87654321 })
+      reset_method(RPG::System, :map_version, ->(_) { 12345678 })
+      reset_method(Game_System, :map_version, ->(_) { 87654321 })
     end
   end
 
