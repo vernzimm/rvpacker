@@ -20,8 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 =end
 
-# require 'RGSS/psych_mods'
-require 'rvpacker/rgss/psych_mods'
+require 'rvpacker/psych/visitors/yaml_tree'
 require 'fileutils'
 require 'zlib'
 require 'pp'

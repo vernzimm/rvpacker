@@ -27,7 +27,7 @@ gem 'psych', '2.0.0'
 require 'psych'
 
 if Psych::VERSION == '2.0.0'
-  # Psych bugs: 
+  # Psych bugs:
   #
   # 1) Psych has a bug where it stores an anchor to the YAML for an object, but
   # indexes the reference by object_id. This doesn't keep the object alive, so
@@ -39,8 +39,8 @@ if Psych::VERSION == '2.0.0'
   #
   # 2) Psych also doesn't create references and anchors for classes that
   # implement `encode_with`. This modifies `dump_coder` to handle that
-  # situation. 
-  # 
+  # situation.
+  #
   # Added two options:
   # :sort - sort hashes and instance variables for objects
   # :flow_classes - array of class types that will automatically emit with flow
@@ -61,7 +61,7 @@ if Psych::VERSION == '2.0.0'
             @obj_to_obj[target.object_id] = target
           end
         end
-        
+
         remove_method(:visit_Hash)
         def visit_Hash o
           tag      = o.class == ::Hash ? nil : "!ruby/hash:#{o.class}"
@@ -79,7 +79,7 @@ if Psych::VERSION == '2.0.0'
 
           @emitter.end_mapping
         end
-      
+
         remove_method(:visit_Object)
         def visit_Object o
           tag = Psych.dump_tags[o.class]
@@ -87,7 +87,7 @@ if Psych::VERSION == '2.0.0'
             klass = o.class == Object ? nil : o.class.name
             tag   = ['!ruby/object', klass].compact.join(':')
           end
-          
+
           if @options[:flow_classes] && @options[:flow_classes].include?(o.class)
             style = Nodes::Mapping::FLOW
           else
@@ -114,7 +114,7 @@ if Psych::VERSION == '2.0.0'
           o.encode_with(c)
           register o, emit_coder(c)
         end
-        
+
         remove_method(:dump_ivars)
         def dump_ivars target
           ivars = find_ivars target

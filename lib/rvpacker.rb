@@ -1,6 +1,6 @@
+require 'rvpacker/psych/visitors/yaml_tree'
 require 'rvpacker/rgss'
 require 'rvpacker/rgss/basic_coder'
-require 'rvpacker/rgss/psych_mods'
 require 'rvpacker/rgss/serialize'
 require 'rvpacker/rpg'
 require 'rvpacker/version'
@@ -15,7 +15,7 @@ module Rvpacker
       'ace'
     end
   end
-  
+
   def self.valid_project?(dir)
     !Dir["#{File.expand_path(dir)}/Game.r?proj*"].empty?
   end
