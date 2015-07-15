@@ -20,7 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 =end
 
+require 'rvpacker/rgss/basic_coder'
 require 'rvpacker/rpg'
+require 'rvpacker/util'
 require 'scanf'
 
 class Table
@@ -118,6 +120,8 @@ class Rect
 end
 
 module RGSS
+  extend Rvpacker::Util
+
   def self.remove_defined_method(scope, name)
     if scope.instance_methods(false).include?(name)
       scope.send(:remove_method, name)
@@ -133,30 +137,6 @@ module RGSS
     scope.send(:remove_const, sym) if scope.const_defined?(sym)
     scope.send(:const_set, sym, value)
   end
-
-  def self.array_to_hash(arr, &block)
-    h = {}
-    arr.each_with_index do |val, index|
-      r = block_given? ? block.call(val) : val
-      h[index] = r unless r.nil?
-    end
-    if arr.length > 0
-      last = arr.length - 1
-      h[last] = nil unless h.has_key?(last)
-    end
-    return h
-  end
-
-  def self.hash_to_array(hash)
-    arr = []
-    hash.each do |k, v|
-      arr[k] = v
-    end
-    return arr
-  end
-
-  require 'rvpacker/rgss/basic_coder'
-  require 'rvpacker/rpg'
 
   # creates an empty class in a potentially nested scope
   def self.process(root, name, *args)
@@ -309,6 +289,4 @@ module RGSS
       name == 'version_id' ? map_version(value) : value
     end
   end
-
-  require 'rvpacker/rgss/serialize'
 end
