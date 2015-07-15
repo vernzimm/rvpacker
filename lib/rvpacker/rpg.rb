@@ -1,4 +1,5 @@
 require 'rvpacker/rgss'
+require 'rvpacker/rgss/basic_coder'
 
 module RPG
   class System
