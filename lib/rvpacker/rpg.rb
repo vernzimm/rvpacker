@@ -1,4 +1,3 @@
-# require 'RGSS'
 require 'rvpacker/rgss'
 
 module RPG

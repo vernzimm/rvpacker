@@ -118,7 +118,7 @@ end
 module RGSS
   def self.remove_defined_method(scope, name)
     if scope.instance_methods(false).include?(name)
-      scope.send(:remove_method, name) 
+      scope.send(:remove_method, name)
     end
   end
 
@@ -153,8 +153,6 @@ module RGSS
     return arr
   end
 
-  # require 'RGSS/BasicCoder'
-  # require 'RPG'
   require 'rvpacker/rgss/basic_coder'
   require 'rvpacker/rpg'
 
@@ -206,7 +204,7 @@ module RGSS
         stripped.empty? ? nil : stripped
       end)
       # These magic numbers should be different. If they are the same, the
-      # saved version of the map in save files will be used instead of any 
+      # saved version of the map in save files will be used instead of any
       # updated version of the map.
       reset_method(RPG::System, :map_version, ->(ignored) { 12345678 })
       reset_method(Game_System, :map_version, ->(ignored) { 87654321 })
@@ -310,6 +308,5 @@ module RGSS
     end
   end
 
-  # require 'RGSS/serialize'
   require 'rvpacker/rgss/serialize'
 end
