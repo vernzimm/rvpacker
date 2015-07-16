@@ -71,7 +71,7 @@ if defined?(Psych::VERSION) && Psych::VERSION == '2.0.0'
         end
 
         def visit_Object(object)
-          unless tag = Psych.dump_tags[object.class]
+          unless (tag = Psych.dump_tags[object.class])
             klass = object.class == ::Object ? nil : object.class.name
             tag   = ['!ruby/object', klass].compact.join(':')
           end
@@ -90,7 +90,7 @@ if defined?(Psych::VERSION) && Psych::VERSION == '2.0.0'
 
         def dump_coder(object)
           @coders << object
-          unless tag = Psych.dump_tags[object.class]
+          unless (tag = Psych.dump_tags[object.class])
             klass = object.class == ::Object ? nil : object.class.name
             tag   = ['!ruby/object', klass].compact.join(':')
           end
