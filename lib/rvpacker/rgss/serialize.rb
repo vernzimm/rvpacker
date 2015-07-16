@@ -35,7 +35,7 @@ module RGSS
   end
 
   def self.files_with_extension(directory, extension)
-    Dir.entries(directory).select{|file| File.extname(file) == extension}
+    Dir.entries(directory).select { |file| File.extname(file) == extension }
   end
 
   def self.inflate(str)
@@ -45,7 +45,6 @@ module RGSS
   def self.deflate(str)
     Zlib::Deflate.deflate(str, Zlib::BEST_COMPRESSION)
   end
-
 
   def self.dump_data_file(file, data, time, options)
     File.open(file, 'wb') { |f| Marshal.dump(data, f) }
@@ -68,7 +67,7 @@ module RGSS
   end
 
   def self.dump(dumper, file, data, time, options)
-    self.method(dumper).call(file, data, time, options)
+    send(dumper, file, data, time, options)
   rescue
     warn "Exception dumping #{file}"
     raise
@@ -83,10 +82,9 @@ module RGSS
     obj = nil
     File.open(file, 'rb') { |f| obj = Psych.load(f) }
     max = 0
-    return obj unless obj.kind_of?(Array)
+    return obj unless obj.is_a?(Array)
     seen = {}
-    idx =
-      obj.each do |elem|
+    obj.each do |elem|
       next if elem.nil?
       if elem.instance_variable_defined?(:@id)
         id = elem.instance_variable_get(:@id)
@@ -96,7 +94,7 @@ module RGSS
       end
       next if id.nil?
 
-      if seen.has_key?(id)
+      if seen.key?(id)
         formatador.display_line("[red]#{file}: Duplicate ID #{id}[/]")
         formatador.indent do
           formatador.indent do
@@ -141,7 +139,7 @@ module RGSS
   end
 
   def self.load(loader, file)
-    return self.method(loader).call(file)
+    send(loader, file)
   rescue
     warn "Exception loading #{file}"
     raise
@@ -151,51 +149,58 @@ module RGSS
     formatador = Formatador.new
     src_file = File.join(dirs[:data], src)
     dest_file = File.join(dirs[:yaml], dest)
-    raise "Missing #{src}" unless File.exists?(src_file)
+    fail "Missing #{src}" unless File.exist?(src_file)
 
     script_entries = load(:load_data_file, src_file)
-    check_time = !options[:force] && File.exists?(dest_file)
+    check_time = !options[:force] && File.exist?(dest_file)
     oldest_time = File.mtime(dest_file) if check_time
 
-    file_map, script_index, script_code = Hash.new(-1), [], {}
+    file_map     = Hash.new(-1)
+    script_index = []
+    script_code  = {}
 
-    idx=0
+    idx = 0
     script_entries.each do |script|
-      idx += 1
-      magic_number, script_name, code = idx, script[1], inflate(script[2])
-      script_name.force_encoding("UTF-8")
+      magic_number = idx += 1
+      script_name  = script[1]
+      code         = inflate(script[2])
+
+      script_name.force_encoding('utf-8')
 
       if code.length > 0
         filename = script_name.empty? ? 'blank' : sanitize_filename(script_name)
-        key = filename.upcase
-        value = (file_map[key] += 1)
+        key      = filename.upcase
+        value    = (file_map[key] += 1)
         actual_filename = filename + (value == 0 ? "" : ".#{value}") + RUBY_EXT
-        script_index.push([magic_number, script_name, actual_filename])
+        script_index << [magic_number, script_name, actual_filename]
+
         full_filename = File.join(dirs[:script], actual_filename)
         script_code[full_filename] = code
-        check_time = false unless File.exists?(full_filename)
+        check_time = false unless File.exist?(full_filename)
         oldest_time = [File.mtime(full_filename), oldest_time].min if check_time
       else
-        script_index.push([magic_number, script_name, nil])
+        script_index << [magic_number, script_name, nil]
       end
     end
 
     src_time = File.mtime(src_file)
     if check_time && (src_time - 1) < oldest_time
-      formatador.display_line("[yellow]Skipping scripts to text[/]") if $VERBOSE
+      formatador.display_line('[yellow]Skipping scripts to text[/]') if $VERBOSE
     else
-      formatador.display_line("[green]Converting scripts to text[/]") if $VERBOSE
+      formatador.display_line('[green]Converting scripts to text[/]') if $VERBOSE
       dump(:dump_yaml_file, dest_file, script_index, src_time, options)
-      script_code.each {|file, code| dump(:dump_raw_file, file, code, src_time, options)}
+      script_code.each do |file, code|
+        dump(:dump_raw_file, file, code, src_time, options)
+      end
     end
   end
 
   def self.scripts_to_binary(dirs, src, dest, options)
     formatador = Formatador.new
-    src_file = File.join(dirs[:yaml], src)
-    dest_file = File.join(dirs[:data], dest)
-    raise "Missing #{src}" unless File.exists?(src_file)
-    check_time = !options[:force] && File.exists?(dest_file)
+    src_file   = File.join(dirs[:yaml], src)
+    dest_file  = File.join(dirs[:data], dest)
+    fail "Missing #{src}" unless File.exist?(src_file)
+    check_time  = !options[:force] && File.exist?(dest_file)
     newest_time = File.mtime(src_file) if check_time
 
     index = load(:load_yaml_file, src_file)
@@ -205,26 +210,26 @@ module RGSS
       code = ''
       if filename
         full_filename = File.join(dirs[:script], filename)
-        raise "Missing script file #{filename}" unless File.exists?(full_filename)
+        fail "Missing script file #{filename}" unless File.exist?(full_filename)
         newest_time = [File.mtime(full_filename), newest_time].max if check_time
         code = load(:load_raw_file, full_filename)
       end
-      script_entries.push([magic_number, script_name, deflate(code)])
+      script_entries << [magic_number, script_name, deflate(code)]
     end
     if check_time && (newest_time - 1) < File.mtime(dest_file)
-      formatador.display_line("[yellow]Skipping scripts to binary[/]") if $VERBOSE
+      formatador.display_line('[yellow]Skipping scripts to binary[/]') if $VERBOSE
     else
-      formatador.display_line("[green]Converting scripts to binary[/]") if $VERBOSE
+      formatador.display_line('[green]Converting scripts to binary[/]') if $VERBOSE
       dump(:dump_data_file, dest_file, script_entries, newest_time, options)
     end
   end
 
   def self.process_file(file, src_file, dest_file, dest_ext, loader, dumper, options)
+    fbase = File.basename(file, File.extname(file)).downcase
+    return if !options[:database].nil? && (options[:database].downcase != fbase)
     formatador = Formatador.new
-    fbase = File.basename(file, File.extname(file))
-    return if (! options[:database].nil? ) and (options[:database].downcase != fbase.downcase)
     src_time = File.mtime(src_file)
-    if !options[:force] && File.exists?(dest_file) && (src_time - 1) < File.mtime(dest_file)
+    if !options[:force] && File.exist?(dest_file) && (src_time - 1) < File.mtime(dest_file)
       formatador.display_line("[yellow]Skipping #{file}[/]") if $VERBOSE
     else
       formatador.display_line("[green]Converting #{file} to #{dest_ext}[/]") if $VERBOSE
@@ -257,20 +262,29 @@ module RGSS
     end
   end
 
-  # [version] one of :ace, :vx, :xp
-  # [direction] one of :data_bin_to_text, :data_text_to_bin, :save_bin_to_text,
-  #             :save_text_to_bin, :scripts_bin_to_text, :scripts_text_to_bin,
-  #             :all_text_to_bin, :all_bin_to_text
-  # [directory] directory that project file is in
-  # [options] :force - ignores file dates when converting (default false)
-  #           :round_trip - create yaml data that matches original marshalled data skips
-  #                         data cleanup operations (default false)
-  #           :line_width - line width form YAML files, -1 for no line width limit
-  #                         (default 130)
-  #           :table_width - maximum number of entries per row for table data, -1 for no
-  #                          table row limit (default 20)
+  # @note Valid directions for data serialization are as follows:
+  #   - `:data_bin_to_text`, `:data_text_to_bin`
+  #   - `:save_bin_to_text`, `:save_text_to_bin`
+  #   - `:scripts_bin_to_text`, `:scripts_text_to_bin`
+  #   - `:all_text_to_bin`, `:all_bin_to_text`
+  #
+  # @note Valid extra options are as follows:
+  #   - `:force` - ignores file dates when converting (default `false`)
+  #   - `:round_trip` - create YAML data that matches original marshalled data;
+  #     skips data cleanup operations (default `false`)
+  #   - `:line_width` - line width for YAML files; `-1` for no line width limit
+  #      (default `130`)
+  #   - `:table_width` - maximum number of entries per row for `Table` data;
+  #     `-1` for no `Table` row limit (default `20`)
+  #
+  # @param version [:xp, :vx, :ace] the RPG Maker version to serialize as
+  # @param direction [Symbol] the direction to serialize data in; see the notes
+  #   for this method
+  # @param directory [String] the root directory of an RPG Maker project
+  # @param options [Hash{Symbol=>Object}] extra options; see the notes for this
+  #   method
   def self.serialize(version, direction, directory, options = {})
-    raise "#{directory} not found" unless File.directory?(directory)
+    fail "#{directory} not found" unless File.directory?(directory)
 
     setup_classes(version, options)
     options = options.dup
@@ -284,40 +298,40 @@ module RGSS
     base = File.realpath(directory)
 
     dirs = {
-      :base   => base,
-      :data   => get_data_directory(base),
-      :yaml   => get_yaml_directory(base),
-      :script => get_script_directory(base)
+      base:   base,
+      data:   get_data_directory(base),
+      yaml:   get_yaml_directory(base),
+      script: get_script_directory(base)
     }
 
     dirs.each_value { |d| FileUtils.mkdir(d) unless File.directory?(d) }
 
     exts = {
-      :ace => ACE_DATA_EXT,
-      :vx  => VX_DATA_EXT,
-      :xp  => XP_DATA_EXT
+      ace: ACE_DATA_EXT,
+      vx:  VX_DATA_EXT,
+      xp:  XP_DATA_EXT
     }
 
     yaml_scripts = SCRIPTS_BASE + YAML_EXT
     yaml = {
-      :directory => dirs[:yaml],
-      :exclude   => [yaml_scripts],
-      :ext       => YAML_EXT,
-      :load_file => :load_yaml_file,
-      :dump_file => :dump_yaml_file,
-      :load_save => :load_yaml_file,
-      :dump_save => :dump_yaml_file
+      directory: dirs[:yaml],
+      exclude:   [yaml_scripts],
+      ext:       YAML_EXT,
+      load_file: :load_yaml_file,
+      dump_file: :dump_yaml_file,
+      load_save: :load_yaml_file,
+      dump_save: :dump_yaml_file
     }
 
     scripts = SCRIPTS_BASE + exts[version]
     data = {
-      :directory => dirs[:data],
-      :exclude   => [scripts],
-      :ext       => exts[version],
-      :load_file => :load_data_file,
-      :dump_file => :dump_data_file,
-      :load_save => :load_save,
-      :dump_save => :dump_save
+      directory: dirs[:data],
+      exclude:   [scripts],
+      ext:       exts[version],
+      load_file: :load_data_file,
+      dump_file: :dump_data_file,
+      load_save: :load_save,
+      dump_save: :dump_save
     }
 
     if options[:database].nil? || options[:database].downcase == 'scripts'
@@ -355,7 +369,7 @@ module RGSS
       scripts_to_binary(dirs, yaml_scripts, scripts, options) if convert_scripts
       convert_saves(base, yaml, data, options) if convert_saves
     else
-      raise "Unrecognized direction :#{direction}"
+      fail "Unrecognized direction :#{direction}"
     end
   end
 end
