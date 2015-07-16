@@ -244,7 +244,7 @@ module RGSS
   end
 
   class ::Game_Switches
-    include Rvpacker::BasicCoder, Rvpacker::Util
+    include Rvpacker::BasicCoder, Rvpacker::Util::Collections
 
     def encode(name, value)
       array_to_hash(value)
@@ -256,7 +256,7 @@ module RGSS
   end
 
   class ::Game_Variables
-    include Rvpacker::BasicCoder, Rvpacker::Util
+    include Rvpacker::BasicCoder, Rvpacker::Util::Collections
 
     def encode(name, value)
       array_to_hash(value)
