@@ -218,7 +218,7 @@ module RGSS
     setup_system(version, options)
     setup_interpreter(version)
     setup_event_command(version, options)
-    BasicCoder.set_ivars_methods(version)
+    Rvpacker::BasicCoder.set_ivars_methods(version)
   end
 
   FLOW_CLASSES = [Color, Tone, RPG::BGM, RPG::BGS, RPG::MoveCommand, RPG::SE]

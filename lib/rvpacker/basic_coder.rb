@@ -19,8 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'rvpacker/rgss'
-
 module Rvpacker
   module BasicCoder
     INCLUDED_CLASSES = []
