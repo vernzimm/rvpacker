@@ -67,7 +67,7 @@ class Table
     raise 'Size mismatch loading Table from YAML' unless items == @data.length
   end
 
-  def _dump(depth = 0)
+  def _dump(_depth = 0)
     [@dim, @x, @y, @z, @x * @y * @z, *@data].pack('L5S*')
   end
 
@@ -81,7 +81,7 @@ class Color
     @red, @green, @blue, @alpha = *bytes.unpack('D4')
   end
 
-  def _dump(depth = 0)
+  def _dump(_depth = 0)
     [@red, @green, @blue, @alpha].pack('D4')
   end
 
@@ -95,7 +95,7 @@ class Tone
     @red, @green, @blue, @gray = *bytes.unpack('D4')
   end
 
-  def _dump(depth = 0)
+  def _dump(_depth = 0)
     [@red, @green, @blue, @gray].pack('D4')
   end
 
@@ -109,7 +109,7 @@ class Rect
     @x, @y, @width, @height = *bytes.unpack('i4')
   end
 
-  def _dump(depth = 0)
+  def _dump(_depth = 0)
     [@x, @y, @width, @height].pack('i4')
   end
 
