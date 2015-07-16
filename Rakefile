@@ -26,5 +26,5 @@ namespace :yard do
   end
 end
 
-task :clean => 'yard:clean'
-task :default => :yard
+task clean:   'yard:clean'
+task default: :yard
