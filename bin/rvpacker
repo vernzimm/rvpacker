@@ -55,6 +55,11 @@ EOS
   opt :verbose, 'Print verbose information while processing', short: 'V'
 end
 
+# Fail fast if any of the `pack`, `unpack`, or `action` options are combined.
+if Rvpacker::Util.combined_action?(opts)
+  Trollop.die('--pack, --unpack, and --action cannot be combined')
+end
+
 # Attempt to parse which action to perform (packing YAML to binary data or
 # unpacking binary data to YAML). Warn if the `action` option was used, as it
 # is likely to be removed in the future and fail fast if the action is Unknown
@@ -82,7 +87,7 @@ end
 opts[:project] ||= Dir.pwd
 opts[:project] = File.expand_path(opts[:project])
 
-unless Rvpacker.valid_project?(opts[:project])
+unless Rvpacker::Util.valid_project?(opts[:project])
   Trollop.die("#{opts[:project]} is not a valid RPG Maker project")
 end
 
@@ -93,7 +98,7 @@ end
 if opts[:project_type]
   opts[:project_type] = opts[:project_type].to_sym
 else
-  opts[:project_type] = Rvpacker.project_type_for(opts[:project])
+  opts[:project_type] = Rvpacker::Util.project_type_for(opts[:project])
 end
 
 unless [:xp, :vx, :ace].any? { |type| opts[:project_type] == type }
@@ -107,13 +112,6 @@ end
 
 # TODO: Remove the reliance on $VERBOSE for printing information.
 $VERBOSE = opts[:verbose]
-
-# Fail fast if any of the `pack`, `unpack`, or `action` options are combined.
-# TODO: Fix the conditional, it's pretty ugly at the moment.
-if (opts[:action] && (opts[:pack] || opts[:unpack])) ||
-    (opts[:pack] && opts[:unpack])
-  Trollop.die('--pack, --unpack, and --action cannot be combined')
-end
 
 # Set up the default extra options passed to `RGSS.serialize`.
 extra_opts = {
