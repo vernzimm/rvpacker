@@ -168,18 +168,18 @@ module RGSS
    [:Interpreter]
   ].each { |x| process(Object, *x) }
 
-  def self.setup_system(version, options)
-    # Convert variable and switch name arrays to a hash when serialized if
+  def self.setup_system(options)
+    # Convert variable and switch name arrays to a hash when serialized. If
     # `:round_trip` isn't set change `version_id` to fixed number.
     if options[:round_trip]
-      iso = ->(val) { return val }
+      iso = ->(value) { value }
       reset_method(RPG::System, :reduce_string, iso)
       reset_method(RPG::System, :map_version, iso)
       reset_method(Game_System, :map_version, iso)
     else
-      reset_method(RPG::System, :reduce_string, ->(str) do
-        return nil if str.nil?
-        stripped = str.strip
+      reset_method(RPG::System, :reduce_string, lambda do |string|
+        return nil if string.nil?
+        stripped = string.strip
         stripped.empty? ? nil : stripped
       end)
       # These magic numbers should be different. If they are the same, the
@@ -215,7 +215,7 @@ module RGSS
   end
 
   def self.setup_classes(version, options)
-    setup_system(version, options)
+    setup_system(options)
     setup_interpreter(version)
     setup_event_command(version, options)
     Rvpacker::BasicCoder.set_ivars_methods(version)
@@ -246,11 +246,11 @@ module RGSS
   class ::Game_Switches
     include Rvpacker::BasicCoder, Rvpacker::Util::Collections
 
-    def encode(name, value)
+    def encode(_, value)
       array_to_hash(value)
     end
 
-    def decode(name, value)
+    def decode(_, value)
       hash_to_array(value)
     end
   end
@@ -258,11 +258,11 @@ module RGSS
   class ::Game_Variables
     include Rvpacker::BasicCoder, Rvpacker::Util::Collections
 
-    def encode(name, value)
+    def encode(_, value)
       array_to_hash(value)
     end
 
-    def decode(name, value)
+    def decode(_, value)
       hash_to_array(value)
     end
   end
@@ -270,12 +270,12 @@ module RGSS
   class ::Game_SelfSwitches
     include Rvpacker::BasicCoder
 
-    def encode(name, value)
-      Hash[value.map { |(key, value)| next ['%03d %03d %s' % key, value] }]
+    def encode(_, value)
+      Hash[value.map { |(key, val)| next [sprintf('%03d %03d %s', key, val)] }]
     end
 
-    def decode(name, value)
-      Hash[value.map { |(key, value)| next [key.scanf('%d %d %s'), value] }]
+    def decode(_, value)
+      Hash[value.map { |(key, val)| next [key.scanf('%d %d %s'), val] }]
     end
   end
 
