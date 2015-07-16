@@ -1,26 +1,25 @@
-=begin
-Copyright (c) 2013 Howard Jeng
+# Copyright (c) 2013 Howard Jeng
+# Copyright (c) 2015 Rachel Wall
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-=end
-
-require 'rvpacker/rgss/basic_coder'
+require 'rvpacker/basic_coder'
 require 'rvpacker/rpg'
 require 'rvpacker/util'
 require 'scanf'
@@ -120,8 +119,6 @@ class Rect
 end
 
 module RGSS
-  extend Rvpacker::Util
-
   def self.remove_defined_method(scope, name)
     if scope.instance_methods(false).include?(name)
       scope.send(:remove_method, name)
@@ -246,8 +243,8 @@ module RGSS
     File.join(base, 'Scripts')
   end
 
-  class Game_Switches
-    include RGSS::BasicCoder
+  class ::Game_Switches
+    include Rvpacker::BasicCoder, Rvpacker::Util
 
     def encode(name, value)
       array_to_hash(value)
@@ -258,8 +255,8 @@ module RGSS
     end
   end
 
-  class Game_Variables
-    include RGSS::BasicCoder
+  class ::Game_Variables
+    include Rvpacker::BasicCoder, Rvpacker::Util
 
     def encode(name, value)
       array_to_hash(value)
@@ -270,8 +267,8 @@ module RGSS
     end
   end
 
-  class Game_SelfSwitches
-    include RGSS::BasicCoder
+  class ::Game_SelfSwitches
+    include Rvpacker::BasicCoder
 
     def encode(name, value)
       Hash[value.map { |(key, value)| next ['%03d %03d %s' % key, value] }]
@@ -282,8 +279,8 @@ module RGSS
     end
   end
 
-  class Game_System
-    include RGSS::BasicCoder
+  class ::Game_System
+    include Rvpacker::BasicCoder
 
     def encode(name, value)
       name == 'version_id' ? map_version(value) : value
